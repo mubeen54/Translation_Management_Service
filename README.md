@@ -32,7 +32,7 @@ This project is a scalable and performant **Translation Management Service** bui
 ## ⚙️ Installation
 
 ```bash
-git clone https://github.com/your-username/translation-api.git
+https://github.com/mubeen54/Translation_Management_Service.git
 cd translation-api
 
 cp .env.example .env

@@ -4,49 +4,42 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaltion;
 use Illuminate\Http\Request;
+use App\Helpers\Api;
+use App\Http\Requests\StoreTranslationRequest;
+use App\Http\Requests\UpdateTranslationRequest;
 
 class TranslationController extends Controller
 {
     public function index(Request $request)
     {
-        return Transaltion::when($request->tag, fn($q) => $q->whereJsonContains('tags', $request->tag))
+        $translations = Transaltion::when($request->tag, fn($q) => $q->whereJsonContains('tags', $request->tag))
             ->when($request->key, fn($q) => $q->where('key', 'like', "%{$request->key}%"))
             ->when($request->value, fn($q) => $q->where('value', 'like', "%{$request->value}%"))
             ->paginate(20);
+
+        return Api::setResponse('translations', $translations);
     }
 
-    public function store(Request $request)
+    public function store(StoreTranslationRequest $request)
     {
-        $data = $request->validate([
-            'locale' => 'required|string',
-            'key' => 'required|string|unique:translations,key',
-            'value' => 'required|string',
-            'tags' => 'array'
-        ]);
-       
-        return Transaltion::create($data);
+        $translation = Transaltion::create($request->validated());
+        return Api::setResponse('translation', $translation);
     }
 
-    public function update(Request $request, Transaltion $translation)
+    public function update(UpdateTranslationRequest $request, Transaltion $translation)
     {
-        $data = $request->validate([
-            'locale' => 'required|string',
-            'key' => 'required|string',
-            'value' => 'required|string',
-            'tags' => 'array'
-        ]);
-        $translation->update($data);
-        return $translation;
+        $translation->update($request->validated());
+        return Api::setResponse('translation', $translation);
     }
 
     public function show(Transaltion $translation)
     {
-        return $translation;
+        return Api::setResponse('translation', $translation);
     }
 
     public function export($locale)
     {
         $translations = Transaltion::where('locale', $locale)->get(['key', 'value']);
-        return response()->json($translations->pluck('value', 'key'));
+        return Api::setResponse('translations', $translations->pluck('value', 'key'));
     }
 }
